@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>BAYLOS Admin Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{--navy:#111827;--gold:#c9a45c;--bg:#f6f3ed;--card:#fff;--line:#e7e0d5;--muted:#737987;--danger:#b42318;--green:#16835b}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:#172033}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}.app{min-height:100vh}.topbar{height:70px;background:var(--navy);color:#fff;display:flex;align-items:center;padding:0 22px;gap:15px;position:sticky;top:0;z-index:20}
+.brand{font-weight:900;letter-spacing:1.5px}.brand small{display:block;font-size:9px;color:#d9bd7d;letter-spacing:2px;margin-top:3px}
+.user{margin-left:auto;font-size:12px;opacity:.8}.menu-btn{display:none;background:none;color:#fff;border:0;font-size:25px}
+.layout{display:flex;min-height:calc(100vh - 70px)}.sidebar{width:235px;background:#fff;border-right:1px solid var(--line);padding:18px 12px;flex:none}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:11px;color:#4b5563;font-weight:700}
+.nav button:hover,.nav button.active{background:#f1eadc;color:#8b6a32}.logout{margin-top:18px!important;color:#a33!important}
+.content{flex:1;max-width:1400px;margin:auto;padding:25px;width:100%}.page{display:none}.page.active{display:block}
+.head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}.head h1{margin:0;font-size:25px}.head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:800}.primary{background:var(--navy);color:#fff}.gold{background:var(--gold);color:#fff}.secondary{background:#eee9df;color:#374151}.danger{background:#fee4e2;color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}.stat{background:#fff;border:1px solid var(--line);border-radius:17px;padding:18px;box-shadow:0 5px 20px #17203308}.stat small{color:var(--muted)}.stat strong{display:block;font-size:28px;margin-top:7px}
+.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.full{grid-column:1/-1}
+label{display:block;font-size:12px;font-weight:800;margin-bottom:7px}input,select,textarea{width:100%;border:1px solid #dcd5ca;border-radius:10px;padding:11px 12px;background:#fff;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px #c9a45c22}textarea{min-height:110px;resize:vertical}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.row-tools{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.search{max-width:350px}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:12px;border-bottom:1px solid #eee8df;text-align:left;font-size:12px;vertical-align:middle}.table th{color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.thumb{width:58px;height:58px;border-radius:10px;object-fit:cover;background:#eee}.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:10px;font-weight:800}.active-b{background:#e7f7f0;color:#16835b}.off-b{background:#f1f1f1;color:#666}.promo{background:#f7efdc;color:#96712f}.action-cell{display:flex;gap:6px;flex-wrap:wrap}
+.preview{display:none;max-width:180px;max-height:180px;object-fit:cover;border-radius:12px;margin-top:10px;border:1px solid var(--line)}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#fff 0,#f6f3ed 55%)}.login-card{width:min(430px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px;box-shadow:0 20px 70px #17203312}.login-logo{font-size:28px;font-weight:900;letter-spacing:3px}.login-sub{color:var(--gold);font-size:10px;letter-spacing:2px;font-weight:800;margin:4px 0 25px}.login .field{margin-bottom:14px}.login .btn{width:100%;margin-top:8px}.note{font-size:12px;line-height:1.6;color:var(--muted)}
+.color{display:flex;gap:8px}.color input[type=color]{width:55px;padding:3px;height:44px}.color input[type=text]{flex:1}
+.toast{position:fixed;right:18px;bottom:18px;background:var(--navy);color:#fff;padding:13px 16px;border-radius:12px;box-shadow:0 10px 30px #0003;transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s;z-index:50}.toast.show{transform:none;opacity:1}.toast.err{background:#9f1d16}
+@media(max-width:850px){.menu-btn{display:block}.sidebar{position:fixed;left:-250px;top:70px;bottom:0;z-index:15;transition:.25s;box-shadow:10px 0 30px #0002}.sidebar.open{left:0}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.content{padding:17px}.user{display:none}}
+@media(max-width:520px){.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:23px}.head{align-items:flex-start;flex-direction:column}.login-card{padding:24px}}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login">
+  <div class="login-card">
+    <div class="login-logo">BAYLOS</div>
+    <div class="login-sub">ADMIN CONTROL CENTER</div>
+    <div class="field"><label>Email Admin</label><input id="loginEmail" type="email" autocomplete="username" placeholder="email@kamu.com"></div>
+    <div class="field"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn primary" id="loginBtn">Masuk ke Admin</button>
+    <p class="note">Login memakai Supabase Authentication. Password tidak disimpan di HTML.</p>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="brand">BAYLOS<small>ADMIN CONTROL CENTER</small></div>
+    <div class="user" id="userEmail"></div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="nav">
+        <button class="active" data-page="dashboard">📊 Dashboard</button>
+        <button data-page="products">🛍️ Produk</button>
+        <button data-page="add">➕ Tambah Produk</button>
+        <button data-page="theme">🎨 Tampilan Toko</button>
+        <button data-page="settings">⚙️ Pengaturan</button>
+        <button class="logout" id="logoutBtn">🚪 Keluar</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section id="page-dashboard" class="page active">
+        <div class="head"><div><h1>Dashboard</h1><p>Pusat kendali Baylos Shopping Murah.</p></div><button class="btn gold" data-page="add">+ Produk Baru</button></div>
+        <div class="stats">
+          <div class="stat"><small>Total Produk</small><strong id="totalProducts">0</strong></div>
+          <div class="stat"><small>Produk Aktif</small><strong id="activeProducts">0</strong></div>
+          <div class="stat"><small>Kategori</small><strong id="totalCategories">0</strong></div>
+          <div class="stat"><small>Promo</small><strong id="promoProducts">0</strong></div>
+        </div>
+        <div class="card"><h3>Kontrol Cepat</h3><p class="note">Semua perubahan produk disimpan ke Supabase dan akan dibaca halaman toko. Gunakan urutan etalase untuk mengatur posisi produk.</p><div class="actions"><button class="btn primary" data-page="products">Kelola Produk</button><button class="btn secondary" data-page="theme">Atur Tampilan</button><button class="btn secondary" onclick="window.open('index.html','_blank')">Buka Toko</button></div></div>
+      </section>
+
+      <section id="page-products" class="page">
+        <div class="head"><div><h1>Produk</h1><p>Edit, hapus, aktifkan, nonaktifkan, dan atur affiliate.</p></div><div class="row-tools"><input class="search" id="productSearch" placeholder="Cari nama/kategori..."><button class="btn primary" data-page="add">+ Tambah</button></div></div>
+        <div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Gambar</th><th>Produk</th><th>Kategori</th><th>Harga</th><th>Label</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="productTable"><tr><td colspan="7">Memuat...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section id="page-add" class="page">
+        <div class="head"><div><h1 id="formTitle">Tambah Produk</h1><p>Data akan langsung masuk ke tabel products.</p></div><button class="btn secondary" data-page="products">← Kembali</button></div>
+        <div class="card">
+          <form id="productForm">
+            <input type="hidden" id="productId">
+            <div class="grid">
+              <div><label>Nama Produk *</label><input id="productName" required></div>
+              <div><label>Kategori *</label><input id="productCategory" required placeholder="Fashion Wanita"></div>
+              <div><label>Harga</label><input id="productPrice" type="number" min="0" placeholder="149000"></div>
+              <div><label>Label</label><select id="productLabel"><option value="">Tanpa Label</option><option>PROMO</option><option>TERBARU</option><option>BEST SELLER</option></select></div>
+              <div class="full"><label>Link Affiliate *</label><input id="affiliateUrl" type="url" required placeholder="https://..."></div>
+              <div class="full"><label>URL Gambar</label><input id="imageUrl" type="url" placeholder="https://..."></div>
+              <div class="full"><label>Upload Gambar dari HP</label><input id="imageFile" type="file" accept="image/*"><img id="imagePreview" class="preview"></div>
+              <div class="full"><label>Deskripsi</label><textarea id="productDescription"></textarea></div>
+              <div><label>Urutan Etalase</label><input id="sortOrder" type="number" value="0"></div>
+              <div><label>Status</label><select id="productActive"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></div>
+            </div>
+            <div class="actions"><button type="button" class="btn secondary" id="resetBtn">Reset</button><button type="submit" class="btn primary" id="saveProductBtn">💾 Simpan Produk</button></div>
+          </form>
+        </div>
+      </section>
+
+      <section id="page-theme" class="page">
+        <div class="head"><div><h1>Theme Studio</h1><p>Atur tampilan toko dari satu tempat.</p></div><button class="btn gold" id="saveThemeBtn">💾 Simpan Tampilan</button></div>
+        <div class="card"><div class="grid">
+          <div><label>Warna Utama</label><div class="color"><input id="primaryColor" type="color"><input id="primaryColorText"></div></div>
+          <div><label>Warna Aksen</label><div class="color"><input id="accentColor" type="color"><input id="accentColorText"></div></div>
+          <div><label>Warna Background</label><div class="color"><input id="backgroundColor" type="color"><input id="backgroundColorText"></div></div>
+          <div><label>Warna Border</label><div class="color"><input id="borderColor" type="color"><input id="borderColorText"></div></div>
+          <div><label>Kolom Desktop</label><select id="desktopColumns"><option>2</option><option>3</option><option selected>4</option><option>5</option></select></div>
+          <div><label>Radius Kartu</label><input id="cardRadius" type="number" min="0" max="50"></div>
+          <div><label>Jarak Produk</label><input id="productGap" type="number" min="0" max="50"></div>
+          <div class="full"><label>URL Banner / Hero</label><input id="heroImage" type="url"></div>
+          <div class="full"><label>Teks Kecil Banner</label><input id="heroLabel"></div>
+          <div class="full"><label>Judul Banner</label><textarea id="heroTitle"></textarea></div>
+          <div class="full"><label>Deskripsi Banner</label><textarea id="heroDescription"></textarea></div>
+        </div></div>
+      </section>
+
+      <section id="page-settings" class="page">
+        <div class="head"><div><h1>Pengaturan</h1><p>Informasi akun dan keamanan.</p></div></div>
+        <div class="card"><label>Email Admin</label><input id="currentEmail" readonly><p class="note">Akun admin menggunakan Supabase Authentication. Jangan pernah menaruh Service Role Key di GitHub.</p><div class="actions"><button class="btn danger" id="logoutBtn2">🚪 Keluar</button></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const cfg=window.BAYLOS_CONFIG||{};
+if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY) console.error("config.js belum benar.");
+const db=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
+let products=[],editingId=null,settings={};
+
+const DEFAULT={
+ primary_color:"#172033",accent_color:"#c9a45c",background_color:"#f7f5f1",border_color:"#e8e2d8",
+ desktop_columns:4,card_radius:22,product_gap:18,
+ hero_image_url:"https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=85",
+ hero_label:"BAYLOS SHOPING MURAH",hero_title:"Fashion Cantik.\\nHarga Bersahabat.",
+ hero_description:"Temukan produk pilihan Baylos dengan harga menarik."
+};
+
+const $=id=>document.getElementById(id);
+function toast(msg,err=false){const t=$("toast");t.textContent=msg;t.className="toast show"+(err?" err":"");clearTimeout(window._toast);window._toast=setTimeout(()=>t.className="toast",2800)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function price(v){return v==null||v===""?"-":"Rp"+Number(v).toLocaleString("id-ID")}
+function showPage(page){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ $("page-"+page)?.classList.add("active");
+ document.querySelectorAll(".nav button[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ $("sidebar").classList.remove("open");
+ if(page==="products")renderTable();
+ if(page==="theme")fillTheme();
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b)showPage(b.dataset.page)});
+$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+
+async function loadProducts(){
+ const {data,error}=await db.from("products").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false});
+ if(error){toast("Produk gagal dimuat: "+error.message,true);return}
+ products=data||[];updateStats();renderTable();
+}
+function updateStats(){
+ $("totalProducts").textContent=products.length;
+ $("activeProducts").textContent=products.filter(p=>p.is_active).length;
+ $("totalCategories").textContent=new Set(products.map(p=>p.category).filter(Boolean)).size;
+ $("promoProducts").textContent=products.filter(p=>String(p.label||"").toUpperCase()==="PROMO").length;
+}
+function renderTable(){
+ const q=($("productSearch")?.value||"").toLowerCase().trim();
+ const rows=products.filter(p=>(p.name+" "+(p.category||"")).toLowerCase().includes(q));
+ $("productTable").innerHTML=rows.length?rows.map(p=>`
+ <tr>
+  <td><img class="thumb" src="${esc(p.image_url||"https://placehold.co/100x100?text=Baylos")}" onerror="this.src='https://placehold.co/100x100?text=Baylos'"></td>
+  <td><b>${esc(p.name)}</b><br><small>Urutan: ${Number(p.sort_order||0)}</small></td>
+  <td>${esc(p.category||"-")}</td><td>${price(p.price)}</td>
+  <td>${p.label?`<span class="badge promo">${esc(p.label)}</span>`:"-"}</td>
+  <td>${p.is_active?'<span class="badge active-b">AKTIF</span>':'<span class="badge off-b">NONAKTIF</span>'}</td>
+  <td><div class="action-cell"><button class="btn secondary" onclick="editProduct('${esc(p.id)}')">Edit</button><button class="btn ${p.is_active?'danger':'gold'}" onclick="toggleProduct('${esc(p.id)}',${!p.is_active})">${p.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="btn danger" onclick="deleteProduct('${esc(p.id)}')">Hapus</button></div></td>
+ </tr>`).join(""):'<tr><td colspan="7">Tidak ada produk.</td></tr>';
+}
+$("productSearch").oninput=renderTable;
+
+function resetForm(){
+ editingId=null;$("productForm").reset();$("productId").value="";$("formTitle").textContent="Tambah Produk";$("sortOrder").value=0;$("productActive").value="true";$("imagePreview").style.display="none";$("saveProductBtn").textContent="💾 Simpan Produk";
+}
+function editProduct(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ editingId=id;$("productId").value=id;$("formTitle").textContent="Edit Produk";
+ $("productName").value=p.name||"";$("productCategory").value=p.category||"";$("productPrice").value=p.price??"";
+ $("productLabel").value=p.label||"";$("affiliateUrl").value=p.affiliate_url||"";$("imageUrl").value=p.image_url||"";
+ $("productDescription").value=p.description||"";$("sortOrder").value=p.sort_order??0;$("productActive").value=String(p.is_active);
+ if(p.image_url){$("imagePreview").src=p.image_url;$("imagePreview").style.display="block"}else $("imagePreview").style.display="none";
+ $("saveProductBtn").textContent="💾 Simpan Perubahan";showPage("add");
+}
+$("resetBtn").onclick=resetForm;
+
+$("imageFile").onchange=function(){
+ const f=this.files[0];if(!f)return;
+ if(!f.type.startsWith("image/")){toast("Pilih file gambar.",true);this.value="";return}
+ if(f.size>5*1024*1024){toast("Maksimal 5 MB.",true);this.value="";return}
+ $("imagePreview").src=URL.createObjectURL(f);$("imagePreview").style.display="block";
+};
+async function uploadImage(file){
+ if(!file)return null;
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+ const path="products/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
+ const {error}=await db.storage.from("product-images").upload(path,file,{cacheControl:"3600",upsert:false});
+ if(error)throw error;
+ return db.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+}
+$("productForm").onsubmit=async e=>{
+ e.preventDefault();
+ const btn=$("saveProductBtn");btn.disabled=true;btn.textContent="Menyimpan...";
+ try{
+  let image=$("imageUrl").value.trim();
+  const file=$("imageFile").files[0];if(file)image=await uploadImage(file);
+  const payload={
+   name:$("productName").value.trim(),category:$("productCategory").value.trim(),
+   price:$("productPrice").value?Number($("productPrice").value):null,
+   label:$("productLabel").value,affiliate_url:$("affiliateUrl").value.trim(),
+   image_url:image,description:$("productDescription").value.trim(),
+   sort_order:Number($("sortOrder").value||0),is_active:$("productActive").value==="true"
+  };
+  if(editingId){
+   const {error}=await db.from("products").update(payload).eq("id",editingId);if(error)throw error;toast("Produk berhasil diperbarui.");
+  }else{
+   const {error}=await db.from("products").insert(payload);if(error)throw error;toast("Produk berhasil ditambahkan.");
+  }
+  await loadProducts();resetForm();showPage("products");
+ }catch(err){toast("Gagal: "+err.message,true)}
+ finally{btn.disabled=false;btn.textContent=editingId?"💾 Simpan Perubahan":"💾 Simpan Produk"}
+};
+async function toggleProduct(id,value){
+ const {error}=await db.from("products").update({is_active:value}).eq("id",id);
+ if(error){toast("Gagal mengubah status: "+error.message,true);return}
+ toast(value?"Produk diaktifkan.":"Produk dinonaktifkan.");await loadProducts();
+}
+async function deleteProduct(id){
+ const p=products.find(x=>x.id===id);if(!p||!confirm(`Hapus "${p.name}"?`))return;
+ const {error}=await db.from("products").delete().eq("id",id);
+ if(error){toast("Gagal menghapus: "+error.message,true);return}
+ toast("Produk dihapus.");await loadProducts();
+}
+
+function val(id,v){$(id).value=v??""}
+function fillTheme(){
+ const s={...DEFAULT,...settings};
+ [["primaryColor",s.primary_color],["primaryColorText",s.primary_color],["accentColor",s.accent_color],["accentColorText",s.accent_color],["backgroundColor",s.background_color],["backgroundColorText",s.background_color],["borderColor",s.border_color],["borderColorText",s.border_color],["desktopColumns",s.desktop_columns],["cardRadius",s.card_radius],["productGap",s.product_gap],["heroImage",s.hero_image_url],["heroLabel",s.hero_label],["heroTitle",s.hero_title],["heroDescription",s.hero_description]].forEach(([id,v])=>val(id,v));
+}
+function syncColor(color,text){$(text).value=$(color).value}
+["primary","accent","background","border"].forEach(x=>{ $(x+"Color").oninput=()=>syncColor(x+"Color",x+"ColorText") });
+async function loadSettings(){
+ const {data,error}=await db.from("store_settings").select("*").eq("id",1).maybeSingle();
+ if(error){toast("Pengaturan gagal dimuat: "+error.message,true);settings={...DEFAULT};}
+ else settings={...DEFAULT,...(data||{})};
+ fillTheme();
+}
+$("saveThemeBtn").onclick=async()=>{
+ const payload={id:1,primary_color:$("primaryColorText").value.trim(),accent_color:$("accentColorText").value.trim(),background_color:$("backgroundColorText").value.trim(),border_color:$("borderColorText").value.trim(),desktop_columns:Number($("desktopColumns").value),card_radius:Number($("cardRadius").value),product_gap:Number($("productGap").value),hero_image_url:$("heroImage").value.trim(),hero_label:$("heroLabel").value.trim(),hero_title:$("heroTitle").value.trim(),hero_description:$("heroDescription").value.trim()};
+ const {error}=await db.from("store_settings").upsert(payload,{onConflict:"id"});
+ if(error){toast("Gagal menyimpan tampilan: "+error.message,true);return}
+ settings={...settings,...payload};toast("Tampilan toko berhasil disimpan.");
+};
+
+async function logout(){await db.auth.signOut();location.reload()}
+$("logoutBtn").onclick=logout;$("logoutBtn2").onclick=logout;
+$("loginBtn").onclick=login;
+$("loginPassword").onkeydown=e=>{if(e.key==="Enter")login()};
+async function login(){
+ const email=$("loginEmail").value.trim(),password=$("loginPassword").value;
+ if(!email||!password){toast("Email dan password wajib diisi.",true);return}
+ $("loginBtn").disabled=true;$("loginBtn").textContent="Memeriksa...";
+ const {error}=await db.auth.signInWithPassword({email,password});
+ if(error)toast("Login gagal: "+error.message,true);
+ $("loginBtn").disabled=false;$("loginBtn").textContent="Masuk ke Admin";
+}
+async function boot(){
+ const {data}=await db.auth.getSession();
+ if(!data.session){$("loginView").classList.remove("hidden");$("app").classList.add("hidden");return}
+ $("loginView").classList.add("hidden");$("app").classList.remove("hidden");
+ const email=data.session.user.email||"";$("userEmail").textContent=email;$("currentEmail").value=email;
+ await Promise.all([loadProducts(),loadSettings()]);
+}
+db.auth.onAuthStateChange((_event,session)=>{if(session)boot()});
+boot();
+</script>
+</body>
+</html>

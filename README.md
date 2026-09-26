@@ -35,7 +35,7 @@ Upgrade ini mempertahankan koneksi Supabase yang sudah dipakai Baylos.
 
 ### Cara paling aman
 
-1. Buka repository GitHub Baylos kamu.
+1. Buka repository GitHub kamu.
 2. Pastikan repository yang dipakai untuk GitHub Pages adalah repository yang benar.
 3. Buka folder/root repository.
 4. Upload/replace file berikut:

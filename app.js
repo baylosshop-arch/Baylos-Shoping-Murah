@@ -8,10 +8,6 @@ let settings = {};
 
 let selectedCategory = "Semua";
 let selectedLabel = "";
-let productSort = "default";
-let wishlistOnly = false;
-let wishlistIds = new Set(JSON.parse(localStorage.getItem("baylos_wishlist") || "[]"));
-let currentModalProductId = null;
 
 /* ===================================
    BAYLOS ANALYTICS
@@ -418,140 +414,187 @@ ${escapeHTML(category)}
 
 function renderProducts(){
 
-const keyword = (
-    document.getElementById("searchInput")?.value ||
-    document.getElementById("productMiniSearch")?.value || ""
-).toLowerCase().trim();
+const keyword =
+document
+.getElementById("searchInput")
+.value
+.toLowerCase()
+.trim();
 
-let filtered = products.filter(product => {
-    const categoryMatch = selectedCategory === "Semua" || product.category === selectedCategory;
-    const text = `${product.name || ""} ${product.category || ""} ${product.description || ""}`.toLowerCase();
-    const searchMatch = text.includes(keyword);
-    const labelMatch = selectedLabel === "" || String(product.label || "").toUpperCase().trim() === selectedLabel;
-    const wishlistMatch = !wishlistOnly || wishlistIds.has(String(product.id));
-    return categoryMatch && searchMatch && labelMatch && wishlistMatch;
+
+const filtered =
+products.filter(product => {
+
+const categoryMatch =
+
+selectedCategory === "Semua" ||
+
+product.category ===
+selectedCategory;
+
+
+const text =
+
+`${product.name || ""} ${product.category || ""}`
+.toLowerCase();
+
+
+const searchMatch =
+text.includes(keyword);
+
+
+const labelMatch =
+    selectedLabel === "" ||
+    String(product.label || "").toUpperCase().trim() === selectedLabel;
+
+return categoryMatch &&
+searchMatch &&
+labelMatch;
+
 });
 
-if(productSort === "price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
-if(productSort === "price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
-if(productSort === "newest") filtered.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-if(productSort === "name") filtered.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"id"));
 
-document.getElementById("productCount").textContent = filtered.length + " produk";
+document
+.getElementById("productCount")
+.textContent =
+filtered.length + " produk";
 
-const grid = document.getElementById("productGrid");
+
+const grid =
+document.getElementById("productGrid");
+
+
 if(!filtered.length){
-    grid.innerHTML = `<div class="empty"><h3>${wishlistOnly ? "Wishlist masih kosong" : "Produk tidak ditemukan"}</h3><p>${wishlistOnly ? "Tekan ikon ♡ pada produk untuk menyimpannya." : "Coba gunakan kata kunci atau filter lain."}</p></div>`;
-    return;
+
+grid.innerHTML = `
+
+<div class="empty">
+
+<h3>Produk tidak ditemukan</h3>
+
+<p>
+Coba gunakan kata kunci lain.
+</p>
+
+</div>
+
+`;
+
+return;
+
 }
 
-grid.innerHTML = filtered.map(product => {
-    const wished = wishlistIds.has(String(product.id));
-    const safeId = escapeHTML(product.id || "");
-    return `
-<article class="product-card" data-analytics-product="1" data-product-id="${safeId}" data-product-name="${escapeHTML(product.name || "Produk Baylos")}">
-  <div class="product-image" onclick="openProductModal('${safeId}')" role="button" tabindex="0" aria-label="Lihat ${escapeHTML(product.name || "produk")}">
-    <img src="${escapeHTML(product.image_url || "https://placehold.co/800x800?text=Baylos")}" alt="${escapeHTML(product.name || "Produk Baylos")}" loading="lazy" onerror="this.src='https://placehold.co/800x800?text=Baylos'">
-    ${product.label ? `<span class="product-label">${escapeHTML(product.label)}</span>` : ""}
-    <button type="button" class="wishlist-btn ${wished ? "active" : ""}" onclick="event.stopPropagation();toggleWishlist('${safeId}')" aria-label="${wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}">${wished ? "♥" : "♡"}</button>
-  </div>
-  <div class="product-info">
-    <div class="product-category">${escapeHTML(product.category || "Produk")}</div>
-    <div class="product-name">${escapeHTML(product.name || "Produk Baylos")}</div>
-    <div class="rating">★★★★★</div>
-    <div class="product-price">${formatPrice(product.price)}</div>
-    <div class="product-card-actions">
-      <button type="button" class="detail-button" onclick="openProductModal('${safeId}')">Detail</button>
-      <a class="buy-button" href="${escapeHTML(product.affiliate_url || "#")}" target="_blank" rel="noopener noreferrer sponsored nofollow" onclick="return handleProductBuy(event,'${safeId}')">🛒 Beli</a>
-    </div>
-  </div>
-</article>`;
-}).join("");
 
-observeProductViews();
-}
+grid.innerHTML =
 
-/* ===================================
-   PROJECT: BAYLOS-WISHLIST-03
-=================================== */
-function persistWishlist(){
-    localStorage.setItem("baylos_wishlist", JSON.stringify([...wishlistIds]));
-}
-function toggleWishlist(id){
-    id=String(id||"");
-    if(!id) return;
-    if(wishlistIds.has(id)) wishlistIds.delete(id); else wishlistIds.add(id);
-    persistWishlist();
-    renderProducts();
-    updateWishlistButton();
-    showBaylosToast(wishlistIds.has(id) ? "Produk disimpan ke Wishlist." : "Produk dihapus dari Wishlist.");
-}
-function toggleWishlistFilter(){
-    wishlistOnly=!wishlistOnly;
-    updateWishlistButton();
-    renderProducts();
-    goToSection("productsSection");
-}
-function updateWishlistButton(){
-    const btn=document.getElementById("wishlistFilterBtn");
-    if(btn){btn.classList.toggle("active",wishlistOnly);btn.textContent=`${wishlistOnly ? "♥" : "♡"} Wishlist (${wishlistIds.size})`;}
+filtered
+.map(product => `
+
+<article class="product-card"
+            data-analytics-product="1"
+            data-product-id="${escapeHTML(product.id || "")}"
+            data-product-name="${escapeHTML(product.name || "Produk Baylos")}">
+
+<div class="product-image">
+
+<img
+
+src="${escapeHTML(product.image_url)}"
+
+alt="${escapeHTML(product.name)}"
+
+loading="lazy"
+
+onerror="this.src='https://placehold.co/800x800?text=Baylos'"
+
+>
+
+${product.label ?
+
+`
+
+<span class="product-label">
+
+${escapeHTML(product.label)}
+
+</span>
+
+`
+
+:
+
+""
+
 }
 
-/* ===================================
-   PROJECT: BAYLOS-PRODUCT-DETAIL-04
-=================================== */
-function getProductById(id){ return products.find(p=>String(p.id)===String(id)); }
-function openProductModal(id){
-    const product=getProductById(id);
-    if(!product) return;
-    currentModalProductId=String(id);
-    const modal=document.getElementById("productModal");
-    document.getElementById("modalProductImage").src=product.image_url || "https://placehold.co/800x800?text=Baylos";
-    document.getElementById("modalProductImage").alt=product.name || "Produk Baylos";
-    document.getElementById("modalProductCategory").textContent=product.category || "Produk";
-    document.getElementById("modalProductName").textContent=product.name || "Produk Baylos";
-    document.getElementById("modalProductPrice").textContent=formatPrice(product.price);
-    document.getElementById("modalProductLabel").textContent=product.label || "Pilihan Baylos";
-    document.getElementById("modalProductDescription").textContent=product.description || "Produk pilihan Baylos. Klik Beli Sekarang untuk melihat penawaran dari toko tujuan.";
-    const buy=document.getElementById("modalBuyBtn");
-    const url=safeAffiliateUrl(product.affiliate_url);
-    buy.href=url || "#";
-    buy.onclick=(event)=>handleProductBuy(event,String(id));
-    updateModalWishlist();
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden","false");
-    document.body.classList.add("modal-open");
-    sendAnalyticsEvent("product_detail_view",product);
+</div>
+
+
+<div class="product-info">
+
+<div class="product-category">
+
+${escapeHTML(
+product.category || "Produk"
+)}
+
+</div>
+
+
+<div class="product-name">
+
+${escapeHTML(
+product.name
+)}
+
+</div>
+
+
+<div class="rating">
+
+⭐⭐⭐⭐⭐
+
+</div>
+
+
+<div class="product-price">
+
+${formatPrice(
+product.price
+)}
+
+</div>
+
+
+<a
+
+class="buy-button"
+
+href="${escapeHTML(product.affiliate_url || "#")}"
+
+target="_blank"
+
+rel="noopener noreferrer sponsored nofollow"
+
+onclick="return handleProductBuy(event,'${escapeHTML(product.id || "")}')"
+
+>
+
+🛒 Beli Sekarang
+
+</a>
+
+</div>
+
+</article>
+
+`)
+.join("");
+
+    observeProductViews();
+
 }
-function closeProductModal(){
-    const modal=document.getElementById("productModal");
-    if(!modal) return;
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden","true");
-    document.body.classList.remove("modal-open");
-    currentModalProductId=null;
-}
-function updateModalWishlist(){
-    const btn=document.getElementById("modalWishlistBtn");
-    if(!btn) return;
-    const active=currentModalProductId && wishlistIds.has(String(currentModalProductId));
-    btn.classList.toggle("active",!!active);
-    btn.textContent=active ? "♥" : "♡";
-}
-function toggleModalWishlist(){
-    if(!currentModalProductId) return;
-    toggleWishlist(currentModalProductId);
-    updateModalWishlist();
-}
-async function shareCurrentProduct(){
-    const product=getProductById(currentModalProductId);
-    if(!product) return;
-    const shareData={title:product.name||"Produk Baylos",text:`${product.name||"Produk Baylos"} — ${formatPrice(product.price)}`,url:location.href.split("#")[0]+"#produk="+encodeURIComponent(String(product.id))};
-    try{
-        if(navigator.share){await navigator.share(shareData);sendAnalyticsEvent("product_share",product);}
-        else{await navigator.clipboard.writeText(shareData.url);showBaylosToast("Link produk berhasil disalin.");sendAnalyticsEvent("product_share",product);}
-    }catch(e){ if(e?.name!=="AbortError") showBaylosToast("Link belum bisa dibagikan di perangkat ini."); }
-}
+
 
 /* ===================================
    PREMIUM SHOWCASE ENGINE
@@ -910,23 +953,6 @@ function(){
     renderProducts();
 });
 
-
-/* ===================================
-   PROJECT: BAYLOS-TOOLS-05
-=================================== */
-const miniSearch=document.getElementById("productMiniSearch");
-if(miniSearch){
-  miniSearch.addEventListener("input",()=>{
-    const main=document.getElementById("searchInput");
-    if(main) main.value=miniSearch.value;
-    selectedLabel="";
-    renderProducts();
-  });
-}
-const sortSelect=document.getElementById("productSort");
-if(sortSelect){sortSelect.addEventListener("change",()=>{productSort=sortSelect.value;renderProducts();});}
-updateWishlistButton();
-document.addEventListener("keydown",e=>{if(e.key==="Escape") closeProductModal();});
 
 /* ===================================
    START

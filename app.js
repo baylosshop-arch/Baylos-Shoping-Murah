@@ -777,7 +777,10 @@ if(
 
 !config.SUPABASE_URL ||
 
-!config.SUPABASE_ANON_KEY ||
+!config.SUPABASE_ANON_KEY || 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+
 
 config.SUPABASE_URL
 .startsWith("ISI_")
